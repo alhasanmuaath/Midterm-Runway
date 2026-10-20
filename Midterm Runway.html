@@ -1,0 +1,633 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Midterm Runway</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: one runway. Hero countdown, then a day strip that selects the day's plan,
+   course plates, topic tracker and spaced reviews. Graph-paper ground, anatomical-plate drawings. */
+:root{
+  --bg:#EAF0F4; --surface:#FFFFFF; --surface2:#F3F7FA; --ink:#0B2030; --muted:#566B7A; --line:#D2DEE6; --dot:#C9D7E0;
+  --accent:#0A8F9C; --hot:#E5483A; --ok:#1E9A66; --warn:#C98300;
+  --c1:#0A8F9C; --c2:#D98A06; --c3:#D6335F; --c4:#2E9E5B; --c5:#4A5BD8; --c6:#E26A2C;
+  --shadow:0 1px 2px rgba(11,32,48,.06),0 10px 28px rgba(11,32,48,.08);
+  --f-display:'Bricolage Grotesque','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --f-body:'Instrument Sans','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#08131B; --surface:#0F1E29; --surface2:#142632; --ink:#E7F1F6; --muted:#8FA6B5; --line:#203442; --dot:#173040;
+  --accent:#38C7D4; --hot:#FF6B5B; --ok:#4FD39B; --warn:#F2B545;
+  --c1:#38C7D4; --c2:#F5B83D; --c3:#FF6F91; --c4:#5FD58C; --c5:#8E9BFF; --c6:#FF9A5C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#08131B; --surface:#0F1E29; --surface2:#142632; --ink:#E7F1F6; --muted:#8FA6B5; --line:#203442; --dot:#173040;
+  --accent:#38C7D4; --hot:#FF6B5B; --ok:#4FD39B; --warn:#F2B545;
+  --c1:#38C7D4; --c2:#F5B83D; --c3:#FF6F91; --c4:#5FD58C; --c5:#8E9BFF; --c6:#FF9A5C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);
+  background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:22px 22px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 120px}
+.wrap{max-width:1120px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,h4{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* entrance */
+@keyframes rise{from{opacity:.25;transform:translateY(16px)}to{opacity:1;transform:none}}
+.rise{animation:rise .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0)*90ms)}
+
+/* hero */
+.hero{position:relative;display:grid;grid-template-columns:1.35fr 1fr;gap:28px;align-items:center;padding:28px 0 52px;overflow:hidden}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(46px,8vw,92px);line-height:.92;font-weight:800;margin:14px 0 22px}
+h1 span{color:var(--accent)}
+.next-lbl{font-size:14px;color:var(--muted)}
+.next-lbl b{color:var(--ink);font-weight:600}
+.cd{display:flex;gap:10px;margin:10px 0 12px;flex-wrap:wrap}
+.cd .u{min-width:78px;padding:12px 12px 10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);text-align:center}
+.cd .n{display:block;font:700 38px/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.cd .n.tick{animation:tick .4s ease}
+@keyframes tick{0%{transform:translateY(-6px);opacity:.3}100%{transform:none;opacity:1}}
+.cd small{display:block;margin-top:6px;font:500 10px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+#nxMeta{color:var(--muted);font-size:14px}
+.ringcard{position:relative;z-index:1;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow);display:grid;gap:14px;justify-items:center}
+.bigring{position:relative;width:190px;height:190px}
+.bigring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.bigring .t{fill:none;stroke:var(--line);stroke-width:12}
+.bigring .f{fill:none;stroke:var(--accent);stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1)}
+.bigring .c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.bigring .c b{font:800 44px/1 var(--f-display)}
+.bigring .c span{font-size:12px;color:var(--muted)}
+.ringcard p{font-size:13px;color:var(--muted);text-align:center}
+.ecg{position:absolute;left:0;right:0;bottom:0;width:100%;height:70px;opacity:.55;pointer-events:none}
+.ecg path{fill:none;stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.ecg .base{opacity:.25}
+.ecg .live{stroke-dasharray:320 1600;animation:ecg 3.4s linear infinite}
+@keyframes ecg{from{stroke-dashoffset:320}to{stroke-dashoffset:-1500}}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat small{font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat b{display:block;font:700 28px/1.1 var(--f-display);margin-top:8px}
+.stat b i{font:500 14px var(--f-body);font-style:normal;color:var(--muted)}
+.stat.alert b{color:var(--warn)}
+
+/* sections */
+.sec{margin-top:52px}
+.sec-h{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.sec-h h2{font-size:clamp(26px,4vw,36px);font-weight:800}
+.sec-h p{color:var(--muted);font-size:14px;max-width:52ch}
+
+/* runway */
+.runway{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 14px;scroll-snap-type:x proximity}
+.day{flex:0 0 78px;scroll-snap-align:start;display:grid;justify-items:center;gap:2px;padding:10px 6px 8px;background:var(--surface);border:1px solid var(--line);border-radius:16px;transition:transform .2s,border-color .2s,box-shadow .2s}
+.day:hover{transform:translateY(-3px)}
+.day .wd{font:500 11px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.day .dn{font:800 26px/1.1 var(--f-display)}
+.day .mo{font-size:11px;color:var(--muted)}
+.day .bar{position:relative;display:block;width:22px;height:60px;margin:8px 0 2px;border-radius:7px;background:var(--surface2);overflow:hidden}
+.day .bar i{position:absolute;left:0;right:0;bottom:0;display:block;transition:height .9s cubic-bezier(.2,.7,.2,1)}
+.day .bar-tot{background:color-mix(in srgb,var(--accent) 28%,transparent)}
+.day .bar-done{background:var(--accent)}
+.day .hh{font:600 11px/1 var(--f-mono);color:var(--muted)}
+.day .exs{display:grid;gap:3px;min-height:34px;margin-top:4px}
+.day .exs em{font:600 9.5px/1 var(--f-mono);font-style:normal;padding:4px 5px;border-radius:6px;background:var(--c);color:var(--surface);white-space:nowrap}
+.day.exam{border-color:color-mix(in srgb,var(--hot) 45%,var(--line))}
+.day.today{box-shadow:0 0 0 2px var(--accent)}
+.day.today::after{content:"today";font:600 9px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.day.sel{background:var(--ink);border-color:var(--ink)}
+.day.sel .dn,.day.sel .hh{color:var(--bg)}
+.day.sel .wd,.day.sel .mo{color:color-mix(in srgb,var(--bg) 65%,transparent)}
+.day.sel .bar{background:color-mix(in srgb,var(--bg) 18%,transparent)}
+.day.sel .bar-tot{background:color-mix(in srgb,var(--bg) 35%,transparent)}
+.day.sel .bar-done{background:var(--bg)}
+
+/* plan */
+.plan-top{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.plan-top h3{font-size:26px;font-weight:800}
+.plan-top .sub{color:var(--muted);font-size:14px}
+.nav{display:flex;gap:8px}
+.nav button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;transition:transform .15s}
+.nav button:hover{transform:scale(1.06)}
+.pbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:16px}
+.pbar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.blocks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.blk{--c:var(--c1);display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);transition:opacity .3s,transform .2s}
+.blk:hover{transform:translateY(-2px)}
+.blk.done{opacity:.62}
+.blk.done h4{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--ink) 40%,transparent)}
+.blk.missed{border-color:color-mix(in srgb,var(--hot) 55%,var(--line))}
+.chk{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);background:var(--surface2);display:grid;place-items:center;padding:0;transition:background .2s,border-color .2s}
+.chk:hover{border-color:var(--c)}
+.chk svg{width:18px;height:18px}
+.chk path{fill:none;stroke:var(--surface);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:22;stroke-dashoffset:22;transition:stroke-dashoffset .35s .05s}
+.blk.done .chk{background:var(--c);border-color:var(--c)}
+.blk.done .chk path{stroke-dashoffset:0}
+.chk.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.tag,.pri,.hrs,.miss,.flag{font:600 11px/1 var(--f-mono);padding:5px 8px;border-radius:99px;letter-spacing:.02em}
+.tag{background:color-mix(in srgb,var(--c) 16%,var(--surface));color:var(--c);filter:saturate(1.1)}
+.pri{background:var(--surface2);color:var(--muted)}
+.pri.High{background:color-mix(in srgb,var(--hot) 14%,var(--surface));color:var(--hot)}
+.pri.Medium{background:color-mix(in srgb,var(--warn) 16%,var(--surface));color:var(--warn)}
+.hrs{background:var(--surface2);color:var(--ink)}
+.miss{background:color-mix(in srgb,var(--warn) 20%,var(--surface));color:var(--warn)}
+.flag{background:color-mix(in srgb,var(--hot) 16%,var(--surface));color:var(--hot)}
+.blk h4{font-size:17px;font-weight:700}
+.blk .task{color:var(--muted);font-size:14px;margin-top:2px}
+.blk .tech{font-size:13px;margin-top:6px;color:var(--ink);opacity:.8}
+.blk .tech b{font:600 10px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--c);margin-right:6px}
+.blk .ill{width:56px;height:56px;color:var(--c)}
+.dayexam{margin-bottom:14px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--hot) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--hot) 35%,var(--line));font-size:14px}
+
+/* courses */
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.course{--c:var(--c1);position:relative;display:grid;gap:12px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);text-align:left;overflow:hidden;transition:transform .25s,border-color .25s}
+.course:hover{transform:translateY(-4px);border-color:var(--c)}
+.course .ill{position:absolute;right:10px;top:8px;width:92px;height:92px;color:var(--c);opacity:.95}
+.course .code{font:700 12px/1 var(--f-mono);letter-spacing:.06em;color:var(--c)}
+.course h3{font-size:21px;font-weight:800;max-width:11ch}
+.course .sub{font-size:13px;color:var(--muted);min-height:38px;max-width:24ch}
+.course .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.course .when{font-size:13px}
+.course .when b{display:block;font:800 30px/1 var(--f-display)}
+.cr{position:relative;width:64px;height:64px}
+.cr svg{width:100%;height:100%;transform:rotate(-90deg)}
+.cr .t{fill:none;stroke:var(--line);stroke-width:7}
+.cr .f{fill:none;stroke:var(--c);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.2,.7,.2,1)}
+.cr span{position:absolute;inset:0;display:grid;place-items:center;font:700 13px var(--f-mono)}
+.marks{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px}
+.marks i{display:block;background:var(--c)}
+.marks i:nth-child(2){opacity:.65}.marks i:nth-child(3){opacity:.4}.marks i:nth-child(4){opacity:.25}
+.mlegend{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.course .need{font:600 11px/1 var(--f-mono);padding:6px 9px;border-radius:99px;background:color-mix(in srgb,var(--warn) 18%,var(--surface));color:var(--warn);width:max-content;animation:nudge 2.6s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:none}50%{transform:translateX(4px)}}
+
+/* topics */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:8px 14px;font-weight:600;font-size:13px;transition:background .2s,color .2s}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:7px}
+.tlist{display:grid;gap:8px}
+.trow{--c:var(--c1);display:grid;grid-template-columns:auto 1fr auto auto;gap:6px 14px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.trow .tid{font:600 11px var(--f-mono);color:var(--c)}
+.trow h4{font:600 15px/1.35 var(--f-body)}
+.trow .meta{grid-column:2;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dot.High{background:var(--hot)}.dot.Medium{background:var(--warn)}.dot.Low{background:var(--ok)}
+.st{border:1px solid var(--line);background:var(--surface2);border-radius:99px;padding:7px 12px;font:600 12px var(--f-mono);min-width:104px;transition:background .2s,color .2s,transform .15s}
+.st:active{transform:scale(.95)}
+.st.Learning{background:color-mix(in srgb,var(--warn) 20%,var(--surface));color:var(--warn);border-color:transparent}
+.st.Learned{background:color-mix(in srgb,var(--ok) 20%,var(--surface));color:var(--ok);border-color:transparent}
+.st.Revised{background:var(--ok);color:var(--surface);border-color:transparent}
+.st.need{background:transparent;border-style:dashed;color:var(--warn);cursor:not-allowed}
+.trow .when{font:500 12px var(--f-mono);color:var(--muted)}
+
+/* reviews */
+.rv{display:grid;gap:8px}
+.rvrow{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.rvrow.done{opacity:.55}
+.rvrow .chk{width:28px;height:28px}
+.rvrow .chk svg{width:14px;height:14px}
+.rvrow.done .chk{background:var(--accent);border-color:var(--accent)}
+.rvrow.done .chk path{stroke-dashoffset:0}
+.rvrow h4{font:600 14px var(--f-body)}
+.rvrow small{color:var(--muted)}
+.empty{padding:22px;border:1.5px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center;background:color-mix(in srgb,var(--surface) 60%,transparent)}
+.rules{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.rules div{padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.rules b{display:block;font:800 22px var(--f-display);color:var(--accent)}
+
+/* material + methods */
+.need-box{display:grid;gap:8px;padding:18px;border-radius:20px;background:color-mix(in srgb,var(--warn) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line))}
+.need-box li{list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:14px}
+.need-box ul{margin:0;padding:0;display:grid;gap:8px}
+.need-box li em{font:600 11px var(--f-mono);font-style:normal;color:var(--warn)}
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.meth{--c:var(--c1);padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:20px;display:grid;gap:8px}
+.meth .ill{width:54px;height:54px;color:var(--c)}
+.meth h4{font-size:18px;font-weight:800}
+.meth p{font-size:14px;color:var(--muted)}
+.foot{margin-top:56px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+
+/* focus timer */
+.fab{position:fixed;right:calc(16px + max(0px,env(safe-area-inset-right,0px)));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20}
+.fab-btn{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:99px;border:0;background:var(--ink);color:var(--bg);font:700 14px var(--f-mono);box-shadow:var(--shadow)}
+.fab-btn.run{animation:glow 2s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 50%,transparent)}50%{box-shadow:0 0 0 10px transparent}}
+.panel{position:absolute;right:0;bottom:60px;width:272px;padding:18px;border-radius:22px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);display:grid;gap:12px;justify-items:center}
+.panel .bigring{width:150px;height:150px}
+.panel .bigring .c b{font:700 30px var(--f-mono)}
+.panel .bigring .t,.panel .bigring .f{stroke-width:9}
+.modes,.ctrls{display:flex;gap:8px}
+.modes button,.ctrls button{border:1px solid var(--line);background:var(--surface2);border-radius:99px;padding:7px 13px;font:600 12px var(--f-mono)}
+.modes button.on{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.ctrls .go{background:var(--ink);color:var(--bg);border-color:var(--ink);min-width:84px}
+.panel small{color:var(--muted);font-size:12px}
+
+/* illustration motion */
+.breathe{transform-box:fill-box;transform-origin:50% 60%;animation:breathe 4.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+.spin{transform-box:fill-box;transform-origin:50% 50%;animation:spin 22s linear infinite}
+.spin.rev{animation-direction:reverse;animation-duration:30s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rung{animation:rung 2.4s ease-in-out infinite}
+@keyframes rung{0%,100%{opacity:.25}50%{opacity:1}}
+.crawl{stroke-dasharray:2 11;animation:crawl 1.2s linear infinite}
+@keyframes crawl{to{stroke-dashoffset:-26}}
+.wig{transform-box:fill-box;transform-origin:50% 50%;animation:wig 3s ease-in-out infinite}
+@keyframes wig{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.pulse{transform-box:fill-box;transform-origin:50% 50%;animation:pulse 2.6s ease-out infinite}
+@keyframes pulse{0%{transform:scale(.6);opacity:.7}100%{transform:scale(1.5);opacity:0}}
+.bob{animation:bob 5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;padding-bottom:70px}
+  .ringcard{grid-auto-flow:column;justify-content:start;align-items:center;justify-items:start;gap:18px}
+  .ringcard .bigring{width:120px;height:120px}
+  .ringcard .bigring .c b{font-size:28px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .cgrid,.mgrid{grid-template-columns:1fr 1fr}
+  .rules{grid-template-columns:1fr 1fr}
+}
+@media (max-width:560px){
+  .cgrid,.mgrid{grid-template-columns:1fr}
+  .cd .u{min-width:68px;flex:1}
+  .cd .n{font-size:30px}
+  .blk{grid-template-columns:auto 1fr}
+  .blk .ill{display:none}
+  .trow{grid-template-columns:1fr auto}
+  .trow .tid{grid-column:1}
+  .trow h4,.trow .meta{grid-column:1/-1}
+  .trow .when{display:none}
+  .ringcard{grid-auto-flow:row;justify-items:center}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <p class="eyebrow rise" style="--d:0">MUST Medicine · Fall 2026/27 midterms</p>
+      <h1 class="rise" style="--d:1">Midterm<br><span>Runway</span></h1>
+      <div class="rise" style="--d:2">
+        <p class="next-lbl" id="nxLbl">Next exam</p>
+        <div class="cd" id="cd" role="timer" aria-live="off">
+          <div class="u"><span class="n" id="cdD">--</span><small>days</small></div>
+          <div class="u"><span class="n" id="cdH">--</span><small>hours</small></div>
+          <div class="u"><span class="n" id="cdM">--</span><small>min</small></div>
+          <div class="u"><span class="n" id="cdS">--</span><small>sec</small></div>
+        </div>
+        <p id="nxMeta"></p>
+      </div>
+    </div>
+    <div class="ringcard rise" style="--d:3">
+      <div class="bigring">
+        <svg viewBox="0 0 190 190" aria-hidden="true"><circle class="t" cx="95" cy="95" r="82"/><circle class="f" id="heroRing" cx="95" cy="95" r="82" stroke-dasharray="515.2" stroke-dashoffset="515.2"/></svg>
+        <div class="c"><div><b id="heroPct">0%</b><span>of plan done</span></div></div>
+      </div>
+      <p id="heroCap"></p>
+    </div>
+    <svg class="ecg" viewBox="0 0 1330 90" preserveAspectRatio="none" aria-hidden="true"><path class="base" id="ecgBase"/><path class="live" id="ecgLive"/></svg>
+  </header>
+
+  <section class="stats rise" style="--d:4" aria-label="Today at a glance">
+    <div class="stat"><small>Today's hours</small><b id="stToday">0 <i>/ 0 h</i></b></div>
+    <div class="stat"><small>Blocks done</small><b id="stBlocks">0 <i>/ 55</i></b></div>
+    <div class="stat"><small>Reviews due</small><b id="stRev">0</b></div>
+    <div class="stat alert"><small>Material missing</small><b id="stMat">0 <i>topics</i></b></div>
+  </section>
+
+  <section class="sec" id="runwaySec">
+    <div class="sec-h"><h2>Day strip</h2><p>Tap a day to open its plan. Bars show planned hours, filled as you finish blocks.</p></div>
+    <div class="runway" id="runway"></div>
+  </section>
+
+  <section class="sec" id="planSec">
+    <div class="plan-top">
+      <div><h3 id="pDate"></h3><p class="sub" id="pSub"></p></div>
+      <div class="nav"><button id="prevD" aria-label="Previous day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button id="nextD" aria-label="Next day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+    </div>
+    <div class="pbar"><i id="pBar" style="width:0%"></i></div>
+    <div id="pExam"></div>
+    <ul class="blocks" id="blocks"></ul>
+  </section>
+
+  <section class="sec" id="courseSec">
+    <div class="sec-h"><h2>Six exams</h2><p>Ring = topics learned. Bar = how the midterm marks split between departments.</p></div>
+    <div class="cgrid" id="cgrid"></div>
+  </section>
+
+  <section class="sec" id="topicSec">
+    <div class="sec-h"><h2>Topic tracker</h2><p>Tap a status to move a topic forward: Not started, Learning, Learned, Revised. Ticking a study block marks its topics Learned.</p></div>
+    <div class="chips" id="tchips"></div>
+    <div class="tlist" id="tlist"></div>
+  </section>
+
+  <section class="sec" id="revSec">
+    <div class="sec-h"><h2>Reviews due</h2><p>Each learned topic comes back after 1, 3 and 7 days, then the day before its exam. Only reviews that land before the exam are shown.</p></div>
+    <div class="rv" id="rv"></div>
+    <div class="rules">
+      <div><b>+1</b>day after learning</div><div><b>+3</b>days</div><div><b>+7</b>days</div><div><b>Eve</b>day before the exam</div>
+    </div>
+  </section>
+
+  <section class="sec" id="needSec">
+    <div class="sec-h"><h2>Still needed from you</h2><p>These topics have no slides yet. Their time blocks are reserved in the plan.</p></div>
+    <div class="need-box"><ul id="needList"></ul></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>How to study each block</h2><p>Every block ends with recall from memory, not rereading.</p></div>
+    <div class="mgrid" id="meth"></div>
+  </section>
+
+  <p class="foot"><span>Plan assumes 6 study hours on free days and fewer on exam days. Hours are estimates from page count and difficulty.</span><span id="saveNote"></span></p>
+</div>
+
+<div class="fab">
+  <div class="panel" id="panel" hidden>
+    <div class="modes" id="modes"><button data-m="25" class="on">Focus 25</button><button data-m="50">Deep 50</button><button data-m="5">Break 5</button></div>
+    <div class="bigring"><svg viewBox="0 0 190 190" aria-hidden="true"><circle class="t" cx="95" cy="95" r="82"/><circle class="f" id="tmRing" cx="95" cy="95" r="82" stroke-dasharray="515.2" stroke-dashoffset="0"/></svg><div class="c"><div><b id="tmTxt">25:00</b></div></div></div>
+    <div class="ctrls"><button class="go" id="tmGo">Start</button><button id="tmReset">Reset</button></div>
+    <small id="tmLog">Focus today: 0 min</small>
+  </div>
+  <button class="fab-btn" id="fab" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span id="fabTxt">Focus</span></button>
+</div>
+
+<script>
+const DATA = {"topics": [{"id": "T01", "course": "DHB202-1", "dept": "Anatomy", "file": "Anatomy file (DHB_MID_ANAT_2)", "topic": "Anterior abdominal wall muscles: origin, insertion, nerve supply, actions", "size": "14-pp file (shared)", "diff": "Medium", "status": "Not started", "date": "2026-10-21", "est": 2}, {"id": "T02", "course": "DHB202-1", "dept": "Anatomy", "file": "Anatomy file (DHB_MID_ANAT_2)", "topic": "Rectus sheath (walls, contents) and inguinal canal (boundaries, rings)", "size": "(shared)", "diff": "Medium", "status": "Not started", "date": "2026-10-21", "est": 1.5}, {"id": "T03", "course": "DHB202-1", "dept": "Anatomy", "file": "Anatomy file (DHB_MID_ANAT_2)", "topic": "Spermatic cord (coverings, contents, relations); indirect vs direct inguinal hernia", "size": "(shared)", "diff": "High", "status": "Not started", "date": "2026-10-22", "est": 2}, {"id": "T04", "course": "DHB202-1", "dept": "Anatomy", "file": "Anatomy file (DHB_MID_ANAT_2)", "topic": "Arteries, veins, nerves of abdominal wall; venous anastomoses", "size": "(shared)", "diff": "Medium", "status": "Not started", "date": "2026-10-23", "est": 1}, {"id": "T05", "course": "DHB202-1", "dept": "Anatomy", "file": "Anatomy file (DHB_MID_ANAT_2)", "topic": "Femoral hernia, umbilical hernia, divarication of recti", "size": "(shared)", "diff": "Medium", "status": "Not started", "date": "2026-10-23", "est": 0.5}, {"id": "T06", "course": "DHB202-1", "dept": "Anatomy", "file": "Anatomy file (DHB_MID_ANAT_2)", "topic": "Stomach: orifices, parts, relations, stomach bed (V.V.Imp), peritoneal folds, blood supply", "size": "(shared)", "diff": "High", "status": "Not started", "date": "2026-10-23", "est": 1.5}, {"id": "T07", "course": "DHB202-1", "dept": "Physiology", "file": "Physiology GIT (Dr. Fawzy)", "topic": "GIT regulation: enteric/autonomic nervous control; GI hormones", "size": "PDF p1-6", "diff": "Medium", "status": "Not started", "date": "2026-10-21", "est": 2}, {"id": "T08", "course": "DHB202-1", "dept": "Physiology", "file": "Physiology GIT (Dr. Fawzy)", "topic": "Electrical activity, chewing, swallowing, oesophagus and LES", "size": "PDF p7-11", "diff": "Medium", "status": "Not started", "date": "2026-10-22", "est": 1}, {"id": "T09", "course": "DHB202-1", "dept": "Physiology", "file": "Physiology GIT (Dr. Fawzy)", "topic": "Stomach motility, gastric emptying, vomiting", "size": "PDF p12-14", "diff": "Medium", "status": "Not started", "date": "2026-10-22", "est": 1}, {"id": "T10", "course": "DHB202-1", "dept": "Physiology", "file": "Physiology GIT (Dr. Fawzy)", "topic": "Small intestine movements, MMC, defecation", "size": "PDF p15-17", "diff": "Medium", "status": "Not started", "date": "2026-10-23", "est": 1}, {"id": "T11", "course": "DHB202-1", "dept": "Physiology", "file": "Physiology GIT (Dr. Fawzy)", "topic": "Salivary secretion", "size": "PDF p18-20", "diff": "Low", "status": "Not started", "date": "2026-10-23", "est": 0.5}, {"id": "T12", "course": "DHB202-1", "dept": "Physiology", "file": "Physiology GIT (Dr. Fawzy)", "topic": "Gastric secretion: HCl and its stimuli/inhibition", "size": "PDF p21-24", "diff": "High", "status": "Not started", "date": "2026-10-24", "est": 1.5}, {"id": "T13", "course": "DHB202-1", "dept": "Physiology", "file": "Physiology GIT (Dr. Fawzy)", "topic": "Pancreatic secretion (enzymes, bicarbonate)", "size": "PDF p25-26", "diff": "Medium", "status": "Not started", "date": "2026-10-24", "est": 0.5}, {"id": "T14", "course": "DHB202-1", "dept": "Physiology", "file": "Physiology GIT (Dr. Fawzy)", "topic": "Liver and biliary system, gallbladder, small intestine secretion", "size": "PDF p27-31", "diff": "Medium", "status": "Not started", "date": "2026-10-24", "est": 1.5}, {"id": "T15", "course": "DHB202-1", "dept": "Histology", "file": "(no file uploaded)", "topic": "Histology of GIT lectures - MATERIAL NEEDED", "size": "?", "diff": "Medium", "status": "Material needed", "date": "2026-10-24", "est": 1}, {"id": "T16", "course": "BIO102", "dept": "Biochemistry", "file": "(no file uploaded)", "topic": "All BIO102 lectures - MATERIAL NEEDED", "size": "?", "diff": "High", "status": "Material needed", "date": "2026-10-22", "est": 5}, {"id": "T17", "course": "DHB202-2", "dept": "Pathology", "file": "Pathology GIT file (DHB.pdf)", "topic": "GERD (reflux oesophagitis) and Barrett's oesophagus", "size": "DHB.pdf", "diff": "Medium", "status": "Not started", "date": "2026-10-26", "est": 0.75}, {"id": "T18", "course": "DHB202-2", "dept": "Pathology", "file": "Pathology GIT file (DHB.pdf)", "topic": "Peptic ulcers (H. pylori, sites, pathogenesis, complications)", "size": "DHB.pdf", "diff": "Medium", "status": "Not started", "date": "2026-10-26", "est": 0.75}, {"id": "T19", "course": "DHB202-2", "dept": "Pathology", "file": "Pathology GIT file (DHB.pdf)", "topic": "Gastric carcinoma, sarcoma, MALT lymphoma", "size": "DHB.pdf", "diff": "Medium", "status": "Not started", "date": "2026-10-26", "est": 0.5}, {"id": "T20", "course": "DHB202-2", "dept": "Pathology", "file": "Pathology GIT file (DHB.pdf)", "topic": "Inflammatory bowel disease: ulcerative colitis vs Crohn's", "size": "DHB.pdf", "diff": "High", "status": "Not started", "date": "2026-10-27", "est": 0.75}, {"id": "T21", "course": "DHB202-2", "dept": "Pathology", "file": "Pathology GIT file (DHB.pdf)", "topic": "Benign triphasic salivary gland neoplasm (pleomorphic adenoma)", "size": "DHB.pdf", "diff": "Low", "status": "Not started", "date": "2026-10-27", "est": 0.25}, {"id": "T22", "course": "DHB202-2", "dept": "Pathology", "file": "Pathology GIT file (DHB.pdf)", "topic": "Viral hepatitis A-E, fulminant and chronic hepatitis", "size": "DHB.pdf", "diff": "High", "status": "Not started", "date": "2026-10-27", "est": 1}, {"id": "T23", "course": "DHB202-2", "dept": "Pathology", "file": "Pathology GIT file (DHB.pdf)", "topic": "Liver cirrhosis (classification, portal hypertension, effects)", "size": "DHB.pdf", "diff": "High", "status": "Not started", "date": "2026-10-28", "est": 1}, {"id": "T24", "course": "DHB202-2", "dept": "Pathology", "file": "Pathology GIT file (DHB.pdf)", "topic": "Liver tumour at end of file (looks like HCC - confirm title)", "size": "DHB.pdf", "diff": "Medium", "status": "Not started", "date": "2026-10-28", "est": 0.5}, {"id": "T25", "course": "DHB202-2", "dept": "Parasitology", "file": "1 - Introduction", "topic": "Introduction to parasitology / nematodes", "size": "10 pp", "diff": "Medium", "status": "Not started", "date": "2026-10-27", "est": 0.75}, {"id": "T26", "course": "DHB202-2", "dept": "Parasitology", "file": "2 - Ascaris", "topic": "Ascaris lumbricoides", "size": "6 pp", "diff": "Medium", "status": "Not started", "date": "2026-10-27", "est": 0.5}, {"id": "T27", "course": "DHB202-2", "dept": "Parasitology", "file": "3 - Toxocariasis", "topic": "Toxocariasis", "size": "3 pp", "diff": "Low", "status": "Not started", "date": "2026-10-27", "est": 0.25}, {"id": "T28", "course": "DHB202-2", "dept": "Parasitology", "file": "4 - Hookworms", "topic": "Hookworms", "size": "5 pp", "diff": "Medium", "status": "Not started", "date": "2026-10-27", "est": 0.5}, {"id": "T29", "course": "DHB202-2", "dept": "Parasitology", "file": "5 - Strongyloides", "topic": "Strongyloides stercoralis", "size": "5 pp", "diff": "High", "status": "Not started", "date": "2026-10-27", "est": 1}, {"id": "T30", "course": "DHB202-2", "dept": "Parasitology", "file": "6 - Trichostrongylus", "topic": "Trichostrongylus", "size": "3 pp", "diff": "Low", "status": "Not started", "date": "2026-10-27", "est": 0.5}, {"id": "T31", "course": "DHB202-2", "dept": "Parasitology", "file": "7 - Capillariasis", "topic": "Capillariasis", "size": "4 pp", "diff": "Low", "status": "Not started", "date": "2026-10-28", "est": 0.5}, {"id": "T32", "course": "DHB202-2", "dept": "Parasitology", "file": "8 - Trichinosis", "topic": "Trichinella spiralis (trichinosis)", "size": "5 pp", "diff": "Medium", "status": "Not started", "date": "2026-10-28", "est": 0.5}, {"id": "T33", "course": "DHB202-2", "dept": "Parasitology", "file": "File 9", "topic": "Cutaneous larva migrans, Hymenolepis nana, H. diminuta, Dipylidium", "size": "7 pp", "diff": "Medium", "status": "Not started", "date": "2026-10-28", "est": 0.75}, {"id": "T34", "course": "DHB202-2", "dept": "Parasitology", "file": "10 - Diphyllobothriasis", "topic": "Diphyllobothrium latum (fish tapeworm)", "size": "3 pp", "diff": "Low", "status": "Not started", "date": "2026-10-28", "est": 0.25}, {"id": "T35", "course": "DHB202-2", "dept": "Pharmacology", "file": "(no file uploaded)", "topic": "DHB202-2 pharmacology - MATERIAL NEEDED (8 marks)", "size": "?", "diff": "Medium", "status": "Material needed", "date": "2026-10-28", "est": 1}, {"id": "T36", "course": "DHB202-2", "dept": "Microbiology", "file": "(no file uploaded)", "topic": "DHB202-2 microbiology - MATERIAL NEEDED (5 marks)", "size": "?", "diff": "Medium", "status": "Material needed", "date": "2026-10-28", "est": 1}, {"id": "T37", "course": "MET202", "dept": "Biochemistry", "file": "(no file uploaded)", "topic": "All MET202 lectures - MATERIAL NEEDED", "size": "?", "diff": "High", "status": "Material needed", "date": "2026-10-30", "est": 6}, {"id": "T38", "course": "END202", "dept": "Physiology", "file": "Endocrine physiology (Dr. Fawzy)", "topic": "Chemical messengers, hormone classification, mechanisms of action, second messengers", "size": "PDF p1-10", "diff": "Medium", "status": "Not started", "date": "2026-10-29", "est": 2}, {"id": "T39", "course": "END202", "dept": "Physiology", "file": "Endocrine physiology (Dr. Fawzy)", "topic": "Pituitary: GH, prolactin, posterior pituitary (ADH, oxytocin)", "size": "PDF p11-25", "diff": "High", "status": "Not started", "date": "2026-10-30", "est": 2}, {"id": "T40", "course": "END202", "dept": "Physiology", "file": "Endocrine physiology (Dr. Fawzy)", "topic": "Thyroid gland: synthesis, actions, regulation, hypo/hyperthyroidism", "size": "PDF p26-33", "diff": "High", "status": "Not started", "date": "2026-10-31", "est": 2}, {"id": "T41", "course": "END202", "dept": "Physiology", "file": "Endocrine physiology (Dr. Fawzy)", "topic": "Calcium homeostasis: PTH, calcitonin, tetany", "size": "PDF p34-42", "diff": "Medium", "status": "Not started", "date": "2026-11-01", "est": 2}, {"id": "T42", "course": "END202", "dept": "Physiology", "file": "Endocrine physiology (Dr. Fawzy)", "topic": "Adrenal cortex: glucocorticoids, mineralocorticoids, Cushing/Addison", "size": "PDF p43-56", "diff": "High", "status": "Not started", "date": "2026-11-02", "est": 3}, {"id": "T43", "course": "END202", "dept": "Physiology", "file": "Endocrine physiology (Dr. Fawzy)", "topic": "Pancreas: insulin, glucagon, blood glucose regulation", "size": "PDF p57-66", "diff": "High", "status": "Not started", "date": "2026-11-02", "est": 2}, {"id": "T44", "course": "END202", "dept": "Pharmacology", "file": "pharma_mid_endo_1", "topic": "Insulin, oral antidiabetics, DKA treatment", "size": "10 pp", "diff": "High", "status": "Not started", "date": "2026-11-03", "est": 1.5}, {"id": "T45", "course": "END202", "dept": "Pathology", "file": "Endocrine_1", "topic": "Goitre types, toxic goitre, neoplastic goitre, thyroiditis", "size": "3 pp", "diff": "Medium", "status": "Not started", "date": "2026-11-03", "est": 1}, {"id": "T46", "course": "END202", "dept": "Histology", "file": "(no file uploaded)", "topic": "END202 histology - MATERIAL NEEDED (3 marks)", "size": "?", "diff": "Low", "status": "Material needed", "date": "2026-11-03", "est": 0.5}, {"id": "T47", "course": "MET201", "dept": "Biochemistry", "file": "(no file uploaded)", "topic": "All MET201 lectures - MATERIAL NEEDED", "size": "?", "diff": "High", "status": "Material needed", "date": "2026-11-03", "est": 5.5}], "plan": [{"k": "2026-10-21#1", "date": "2026-10-21", "block": "1", "course": "DHB202-1", "ids": ["T01"], "topic": "Anterior abdominal wall muscles", "task": "Learn 4 muscles: origin, insertion, nerve supply, actions", "tech": "Read -> draw/label from memory -> recite origin-insertion-nerve tables", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-21#2", "date": "2026-10-21", "block": "2", "course": "DHB202-1", "ids": ["T07"], "topic": "GIT regulation and hormones", "task": "Nervous control + hormone table (site, stimulus, action)", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-21#3", "date": "2026-10-21", "block": "3", "course": "DHB202-1", "ids": ["T02"], "topic": "Rectus sheath and inguinal canal", "task": "Draw sheath levels; list boundaries and 2 rings", "tech": "Read -> draw/label from memory -> recite origin-insertion-nerve tables", "hrs": 1.5, "pri": "High", "kind": "learn"}, {"k": "2026-10-21#4", "date": "2026-10-21", "block": "4", "course": "DHB202-1", "ids": ["T01", "T02", "T07"], "topic": "Same-day recall", "task": "Close notes, recite each topic, mark gaps", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 0.5, "pri": "Medium", "kind": "review"}, {"k": "2026-10-22#1", "date": "2026-10-22", "block": "1", "course": "DHB202-1", "ids": ["T03"], "topic": "Spermatic cord and inguinal hernias", "task": "Coverings, contents; direct vs indirect table", "tech": "Read -> draw/label from memory -> recite origin-insertion-nerve tables", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-22#2", "date": "2026-10-22", "block": "2", "course": "DHB202-1", "ids": ["T08", "T09"], "topic": "Oesophagus, LES, stomach motility, vomiting", "task": "Swallowing stages, LES abnormalities, gastric emptying", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-22#3", "date": "2026-10-22", "block": "3", "course": "BIO102", "ids": ["T16"], "topic": "BIO102 lectures (material needed)", "task": "Upload BIO102 slides; start first lecture", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 1, "pri": "High", "kind": "placeholder"}, {"k": "2026-10-22#4", "date": "2026-10-22", "block": "4", "course": "DHB202-1", "ids": ["T01", "T02", "T07"], "topic": "Day-1 review", "task": "Recall Wednesday's topics from memory", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1, "pri": "High", "kind": "review"}, {"k": "2026-10-23#1", "date": "2026-10-23", "block": "1", "course": "DHB202-1", "ids": ["T04", "T05"], "topic": "Abdominal wall vessels; femoral and umbilical hernia", "task": "Venous anastomoses; femoral vs inguinal hernia table", "tech": "Read -> draw/label from memory -> recite origin-insertion-nerve tables", "hrs": 1.5, "pri": "Medium", "kind": "learn"}, {"k": "2026-10-23#2", "date": "2026-10-23", "block": "2", "course": "DHB202-1", "ids": ["T06"], "topic": "Stomach anatomy (marked V.V.Imp in file)", "task": "Stomach bed list, relations, blood supply - draw it", "tech": "Read -> draw/label from memory -> recite origin-insertion-nerve tables", "hrs": 1.5, "pri": "High", "kind": "learn"}, {"k": "2026-10-23#3", "date": "2026-10-23", "block": "3", "course": "DHB202-1", "ids": ["T10", "T11"], "topic": "Small intestine movements, MMC, defecation, saliva", "task": "Compare movement types; saliva functions and control", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 1.5, "pri": "Medium", "kind": "learn"}, {"k": "2026-10-23#4", "date": "2026-10-23", "block": "4", "course": "BIO102", "ids": ["T16"], "topic": "BIO102 lectures (material needed)", "task": "Continue BIO102", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 1, "pri": "High", "kind": "placeholder"}, {"k": "2026-10-23#5", "date": "2026-10-23", "block": "5", "course": "DHB202-1", "ids": ["T03", "T08", "T09"], "topic": "Day-1 review", "task": "Recall Thursday's topics", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 0.5, "pri": "Medium", "kind": "review"}, {"k": "2026-10-24#1", "date": "2026-10-24", "block": "1", "course": "DHB202-1", "ids": ["T12", "T13"], "topic": "Gastric and pancreatic secretion", "task": "HCl mechanism, stimuli/inhibition; pancreatic enzymes and bicarbonate", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-24#2", "date": "2026-10-24", "block": "2", "course": "DHB202-1", "ids": ["T14"], "topic": "Liver, biliary system, gallbladder, SI secretion", "task": "Bile functions, gallbladder emptying, liver functions list", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 1.5, "pri": "Medium", "kind": "learn"}, {"k": "2026-10-24#3", "date": "2026-10-24", "block": "3", "course": "DHB202-1", "ids": ["T15"], "topic": "Histology of GIT (material needed)", "task": "Upload histology slides; study layers and cell types", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 1, "pri": "Medium", "kind": "placeholder"}, {"k": "2026-10-24#4", "date": "2026-10-24", "block": "4", "course": "BIO102", "ids": ["T16"], "topic": "BIO102 lectures (material needed)", "task": "Continue BIO102", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 1, "pri": "High", "kind": "placeholder"}, {"k": "2026-10-24#5", "date": "2026-10-24", "block": "5", "course": "DHB202-1", "ids": ["T04", "T05", "T06", "T10", "T11"], "topic": "Day-1 review", "task": "Recall Friday's topics", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 0.5, "pri": "Medium", "kind": "review"}, {"k": "2026-10-25#1", "date": "2026-10-25", "block": "1", "course": "DHB202-1", "ids": ["T01", "T02", "T03", "T04", "T05", "T06"], "topic": "Anatomy full recall", "task": "Draw inguinal canal, stomach bed; recite hernia table", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1.5, "pri": "High", "kind": "review"}, {"k": "2026-10-25#2", "date": "2026-10-25", "block": "2", "course": "DHB202-1", "ids": ["T07", "T08", "T09", "T10", "T11", "T12", "T13", "T14"], "topic": "Physiology full recall", "task": "Hormone table, secretion flowcharts, motility summary", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1.5, "pri": "High", "kind": "review"}, {"k": "2026-10-25#3", "date": "2026-10-25", "block": "3", "course": "BIO102", "ids": ["T16"], "topic": "BIO102 final push (material needed)", "task": "Recall + questions on all BIO102 lectures", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 2, "pri": "High", "kind": "placeholder"}, {"k": "2026-10-25#4", "date": "2026-10-25", "block": "4", "course": "DHB202-1", "ids": ["T01", "T07"], "topic": "Mixed exam-style questions", "task": "Mixed anatomy + physiology questions; log scores in Practice Results", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1, "pri": "High", "kind": "review"}, {"k": "2026-10-26#1", "date": "2026-10-26", "block": "1", "course": "DHB202-1", "ids": ["T06", "T12"], "topic": "Morning skim before exam (1:00 PM)", "task": "Read your own recall sheets only. Do not learn new material", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1, "pri": "High", "kind": "review"}, {"k": "2026-10-26#2", "date": "2026-10-26", "block": "2", "course": "DHB202-2", "ids": ["T17", "T18", "T19"], "topic": "GERD, Barrett's, peptic ulcers, gastric tumours (after exam)", "task": "Pathology template for each disease", "tech": "Template per disease: definition, cause, gross, micro, complications", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-27#1", "date": "2026-10-27", "block": "1", "course": "DHB202-2", "ids": ["T20", "T21", "T22"], "topic": "IBD, salivary adenoma, viral hepatitis", "task": "UC vs Crohn's table; hepatitis A-E table", "tech": "Template per disease: definition, cause, gross, micro, complications", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-27#2", "date": "2026-10-27", "block": "2", "course": "DHB202-2", "ids": ["T25", "T26", "T27", "T28"], "topic": "Parasitology: intro, Ascaris, Toxocara, hookworms", "task": "Fill one parasite table each", "tech": "One-table-per-parasite: host, infective stage, route, habitat, diagnosis, treatment, prevention", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-27#3", "date": "2026-10-27", "block": "3", "course": "DHB202-2", "ids": ["T29", "T30"], "topic": "Parasitology: Strongyloides, Trichostrongylus", "task": "Fill parasite tables; contrast with hookworm", "tech": "One-table-per-parasite: host, infective stage, route, habitat, diagnosis, treatment, prevention", "hrs": 1.5, "pri": "High", "kind": "learn"}, {"k": "2026-10-27#4", "date": "2026-10-27", "block": "4", "course": "DHB202-2", "ids": ["T17", "T18", "T19"], "topic": "Day-1 review", "task": "Recall Monday's pathology", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 0.5, "pri": "Medium", "kind": "review"}, {"k": "2026-10-28#1", "date": "2026-10-28", "block": "1", "course": "DHB202-2", "ids": ["T31", "T32", "T33", "T34"], "topic": "Parasitology: capillariasis, trichinosis, cestodes", "task": "Parasite tables incl. CLM, H. nana, H. diminuta, Dipylidium, D. latum", "tech": "One-table-per-parasite: host, infective stage, route, habitat, diagnosis, treatment, prevention", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-28#2", "date": "2026-10-28", "block": "2", "course": "DHB202-2", "ids": ["T23", "T24"], "topic": "Cirrhosis and liver tumour", "task": "Cirrhosis effects/portal hypertension; tumour features", "tech": "Template per disease: definition, cause, gross, micro, complications", "hrs": 1.5, "pri": "High", "kind": "learn"}, {"k": "2026-10-28#3", "date": "2026-10-28", "block": "3", "course": "DHB202-2", "ids": ["T35"], "topic": "Pharmacology for DHB202-2 (material needed)", "task": "Upload slides; drug-class tables", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 1, "pri": "Medium", "kind": "placeholder"}, {"k": "2026-10-28#4", "date": "2026-10-28", "block": "4", "course": "DHB202-2", "ids": ["T36"], "topic": "Microbiology for DHB202-2 (material needed)", "task": "Upload slides; organism tables", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 1, "pri": "Medium", "kind": "placeholder"}, {"k": "2026-10-28#5", "date": "2026-10-28", "block": "5", "course": "DHB202-2", "ids": ["T20", "T21", "T22", "T25", "T26", "T27", "T28", "T29", "T30"], "topic": "Mixed recall", "task": "Mixed pathology + parasitology questions", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 0.5, "pri": "Medium", "kind": "review"}, {"k": "2026-10-29#1", "date": "2026-10-29", "block": "1", "course": "DHB202-2", "ids": ["T17", "T23", "T29"], "topic": "Morning final review before exam (1:30 PM)", "task": "One-page summary per subject; high-yield tables only", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 2, "pri": "High", "kind": "review"}, {"k": "2026-10-29#2", "date": "2026-10-29", "block": "2", "course": "END202", "ids": ["T38"], "topic": "Endocrine basics (after exam)", "task": "Hormone classes, receptors, second messengers", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 2, "pri": "Medium", "kind": "learn"}, {"k": "2026-10-29#3", "date": "2026-10-29", "block": "3", "course": "MET202", "ids": ["T37"], "topic": "MET202 lectures (material needed)", "task": "Upload slides; start Metabolism II", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 1, "pri": "High", "kind": "placeholder"}, {"k": "2026-10-30#1", "date": "2026-10-30", "block": "1", "course": "MET202", "ids": ["T37"], "topic": "MET202 lectures (material needed)", "task": "Study + recall", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 3, "pri": "High", "kind": "placeholder"}, {"k": "2026-10-30#2", "date": "2026-10-30", "block": "2", "course": "END202", "ids": ["T39"], "topic": "Pituitary: GH, prolactin, ADH, oxytocin", "task": "Control loops; GH excess/deficiency table", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-30#3", "date": "2026-10-30", "block": "3", "course": "END202", "ids": ["T38"], "topic": "Day-1 review", "task": "Recall endocrine basics", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1, "pri": "Medium", "kind": "review"}, {"k": "2026-10-31#1", "date": "2026-10-31", "block": "1", "course": "MET202", "ids": ["T37"], "topic": "MET202 lectures (material needed)", "task": "Study + recall", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 3, "pri": "High", "kind": "placeholder"}, {"k": "2026-10-31#2", "date": "2026-10-31", "block": "2", "course": "END202", "ids": ["T40"], "topic": "Thyroid physiology", "task": "Hormone synthesis steps; regulation; hypo vs hyper table", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-10-31#3", "date": "2026-10-31", "block": "3", "course": "END202", "ids": ["T39"], "topic": "Day-1 review", "task": "Recall pituitary", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1, "pri": "Medium", "kind": "review"}, {"k": "2026-11-01#1", "date": "2026-11-01", "block": "1", "course": "MET202", "ids": ["T37"], "topic": "Morning final review before exam (2:45 PM)", "task": "Pathway summaries and questions", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 3, "pri": "High", "kind": "review"}, {"k": "2026-11-01#2", "date": "2026-11-01", "block": "2", "course": "END202", "ids": ["T41"], "topic": "Calcium homeostasis, PTH, tetany (evening)", "task": "PTH/calcitonin/vit D table; tetany signs", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 2, "pri": "Medium", "kind": "learn"}, {"k": "2026-11-02#1", "date": "2026-11-02", "block": "1", "course": "END202", "ids": ["T42"], "topic": "Adrenal cortex", "task": "Glucocorticoid actions; aldosterone; Cushing vs Addison", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 3, "pri": "High", "kind": "learn"}, {"k": "2026-11-02#2", "date": "2026-11-02", "block": "2", "course": "END202", "ids": ["T43"], "topic": "Pancreas: insulin and glucagon", "task": "Mechanism, glucose regulation, hormone effects table", "tech": "Read -> redraw flowchart/mechanism from memory -> explain simply", "hrs": 2, "pri": "High", "kind": "learn"}, {"k": "2026-11-02#3", "date": "2026-11-02", "block": "3", "course": "END202", "ids": ["T40", "T41"], "topic": "Review thyroid and calcium", "task": "Recall + questions", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1, "pri": "Medium", "kind": "review"}, {"k": "2026-11-03#1", "date": "2026-11-03", "block": "1", "course": "END202", "ids": ["T44"], "topic": "Endocrine pharmacology", "task": "Insulin types, oral antidiabetic classes, DKA management", "tech": "Drug table: class, mechanism, uses, adverse effects", "hrs": 1.5, "pri": "High", "kind": "learn"}, {"k": "2026-11-03#2", "date": "2026-11-03", "block": "2", "course": "END202", "ids": ["T45"], "topic": "Endocrine pathology (goitre)", "task": "Goitre types and thyroiditis template", "tech": "Template per disease: definition, cause, gross, micro, complications", "hrs": 1, "pri": "Medium", "kind": "learn"}, {"k": "2026-11-03#3", "date": "2026-11-03", "block": "3", "course": "END202", "ids": ["T46"], "topic": "END202 histology (material needed)", "task": "Upload slides; thyroid/adrenal/pancreas histology", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 0.5, "pri": "Low", "kind": "placeholder"}, {"k": "2026-11-03#4", "date": "2026-11-03", "block": "4", "course": "MET201", "ids": ["T47"], "topic": "MET201 lectures (material needed)", "task": "Upload slides; start Metabolism I", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 2, "pri": "High", "kind": "placeholder"}, {"k": "2026-11-03#5", "date": "2026-11-03", "block": "5", "course": "END202", "ids": ["T42", "T43"], "topic": "Review adrenal and pancreas", "task": "Recall + questions", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1, "pri": "High", "kind": "review"}, {"k": "2026-11-04#1", "date": "2026-11-04", "block": "1", "course": "END202", "ids": ["T38", "T39", "T40", "T41", "T42", "T43", "T44", "T45"], "topic": "Morning final review before exam (1:00 PM)", "task": "Hormone master table; pharma table", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 2, "pri": "High", "kind": "review"}, {"k": "2026-11-04#2", "date": "2026-11-04", "block": "2", "course": "MET201", "ids": ["T47"], "topic": "MET201 lectures (after exam)", "task": "Study + recall", "tech": "Reserved: upload slides, then Read -> recall -> questions", "hrs": 2, "pri": "High", "kind": "placeholder"}, {"k": "2026-11-05#1", "date": "2026-11-05", "block": "1", "course": "MET201", "ids": ["T47"], "topic": "Morning final review before exam", "task": "Pathway summaries only", "tech": "Active recall only (no rereading) + 5 practice questions", "hrs": 1.5, "pri": "High", "kind": "review"}], "cap": {"2026-10-21": 6, "2026-10-22": 6, "2026-10-23": 6, "2026-10-24": 6, "2026-10-25": 6, "2026-10-26": 3, "2026-10-27": 6, "2026-10-28": 6, "2026-10-29": 5, "2026-10-30": 6, "2026-10-31": 6, "2026-11-01": 5, "2026-11-02": 6, "2026-11-03": 6, "2026-11-04": 4, "2026-11-05": 1.5}, "parts": {"DHB202-1": [["Anatomy", 20], ["Physiology", 15], ["Histology", 5]], "DHB202-2": [["Pathology", 10], ["Parasitology", 10], ["Pharmacology", 8], ["Microbiology", 5]], "END202": [["Physiology", 7], ["Pharmacology", 6], ["Pathology", 4], ["Histology", 3]], "BIO102": [["Biochemistry", 20]], "MET201": [["Biochemistry", 20]], "MET202": [["Biochemistry", 20]]}};
+
+/* ---------- static meta ---------- */
+const COURSES=[
+ {id:'DHB202-1',n:1,name:'Digestive 1',sub:'Normal structure and function of the GIT and liver',date:'2026-10-26',time:'1:00 PM',at:[2026,10,26,13,0],marks:40,coord:'Prof Nahid Koura',icon:'stomach'},
+ {id:'BIO102',n:2,name:'Biochemistry',sub:'Prof Kamelia',date:'2026-10-26',time:'2:15 PM',at:[2026,10,26,14,15],marks:20,coord:'Prof Kamelia',icon:'dna'},
+ {id:'DHB202-2',n:3,name:'Digestive 2',sub:'Disorders, infections and therapeutics',date:'2026-10-29',time:'1:30 PM',at:[2026,10,29,13,30],marks:33,coord:'Prof Amany Tharwat',icon:'worm'},
+ {id:'MET202',n:4,name:'Metabolism II',sub:'Biochemistry, Prof Kamelia',date:'2026-11-01',time:'2:45 PM',at:[2026,11,1,14,45],marks:20,coord:'Prof Kamelia',icon:'cycle'},
+ {id:'END202',n:5,name:'Endocrine',sub:'Normal system, disorders, infections and therapeutics',date:'2026-11-04',time:'1:00 PM',at:[2026,11,4,13,0],marks:20,coord:'Prof Mahmoud Tag',icon:'thyroid'},
+ {id:'MET201',n:6,name:'Metabolism I',sub:'Biochemistry. Group 1 at 11:00, Group 2 at 12:15',date:'2026-11-05',time:'11:00 AM',at:[2026,11,5,11,0],marks:20,coord:'Prof Kamelia',icon:'molecule'}
+];
+const CBY=Object.fromEntries(COURSES.map(c=>[c.id,c]));
+const METHODS=[
+ {n:1,icon:'stomach',h:'Anatomy',p:'Draw and label from memory. Learn muscles as one table: origin, insertion, nerve supply, action. Stomach bed and hernia differences are marked V.V.Imp in your file.'},
+ {n:5,icon:'thyroid',h:'Physiology',p:'Redraw each mechanism as a flowchart, then explain it in simple words. Keep one hormone table: source, stimulus, action, disorder.'},
+ {n:3,icon:'liver',h:'Pathology',p:'One template per disease: definition, cause, gross, microscopic, complications. Compare pairs such as UC vs Crohn and hepatitis types.'},
+ {n:3,icon:'worm',h:'Parasitology',p:'One row per parasite: host, infective stage, route, habitat, diagnosis, treatment, prevention. Then compare similar worms side by side.'},
+ {n:6,icon:'pill',h:'Pharmacology',p:'One row per drug class: mechanism, uses, adverse effects, key interactions. Insulin types and DKA steps are high yield.'},
+ {n:2,icon:'dna',h:'Biochemistry',p:'Pathway summaries: starting molecule, key enzymes, regulation, disorders. Redraw each pathway from memory.'}
+];
+
+/* ---------- drawings ---------- */
+const SV=(inner,cls='')=>`<svg viewBox="0 0 100 100" class="${cls}" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+function helix(){
+  let a='',b='',r='';
+  for(let i=0;i<=40;i++){const t=i/40*Math.PI*3,y=6+i/40*88,x1=50+24*Math.sin(t),x2=50-24*Math.sin(t);a+=(i?'L':'M')+x1.toFixed(1)+' '+y.toFixed(1);b+=(i?'L':'M')+x2.toFixed(1)+' '+y.toFixed(1);}
+  for(let k=1;k<=9;k++){const t=k/10*Math.PI*3,y=6+k/10*88,x1=50+24*Math.sin(t),x2=50-24*Math.sin(t);r+=`<path class="rung" style="animation-delay:${k*0.22}s" stroke-width="2.2" d="M${x1.toFixed(1)} ${y.toFixed(1)}L${x2.toFixed(1)} ${y.toFixed(1)}"/>`;}
+  return `<path d="${a}"/><path d="${b}" opacity=".6"/>${r}`;
+}
+function hexPts(cx,cy,r){let p='';for(let i=0;i<6;i++){const a=Math.PI/3*i+Math.PI/6;p+=(i?'L':'M')+(cx+r*Math.cos(a)).toFixed(1)+' '+(cy+r*Math.sin(a)).toFixed(1);}return p+'Z';}
+const ICON={
+ stomach:()=>SV(`<g class="breathe"><path fill="currentColor" fill-opacity=".15" d="M42 6V24C26 28 14 44 20 64C26 84 54 90 70 76C80 68 80 56 72 50C66 46 60 46 58 38C57 30 56 24 52 22V6Z"/><path stroke-width="2" opacity=".55" stroke-dasharray="3 5" d="M28 52C38 62 52 64 64 58M26 66C36 74 52 76 62 70"/></g><circle cx="47" cy="5" r="2" fill="currentColor"/>`),
+ dna:()=>SV(`<g class="bob">${helix()}</g>`),
+ molecule:()=>SV(`<g class="spin"><path fill="currentColor" fill-opacity=".14" d="${hexPts(50,50,22)}"/><path d="${hexPts(50,50,22)}"/><path d="M50 28V12M69 61L83 69M31 61L17 69"/><circle cx="50" cy="9" r="5" fill="currentColor"/><circle cx="86" cy="71" r="5" fill="currentColor"/><circle cx="14" cy="71" r="5" fill="currentColor"/></g>`),
+ cycle:()=>SV(`<circle cx="50" cy="50" r="30" opacity=".2"/><g class="spin"><circle cx="50" cy="50" r="30" stroke-dasharray="40 24"/><circle cx="50" cy="20" r="6" fill="currentColor"/><circle cx="76" cy="65" r="6" fill="currentColor"/><circle cx="24" cy="65" r="6" fill="currentColor"/></g><path d="M44 50h12M50 44v12" stroke-width="3"/>`),
+ worm:()=>SV(`<path stroke-width="11" opacity=".22" d="M12 72C28 20 46 92 62 42C70 18 86 30 90 20"/><path stroke-width="9" d="M12 72C28 20 46 92 62 42C70 18 86 30 90 20"/><path class="crawl" stroke="var(--surface)" stroke-width="3" d="M12 72C28 20 46 92 62 42C70 18 86 30 90 20"/><circle cx="90" cy="20" r="2.2" fill="var(--surface)" stroke="none"/><ellipse class="wig" cx="20" cy="26" rx="6" ry="4" fill="currentColor" fill-opacity=".25"/><ellipse class="wig" cx="40" cy="90" rx="5" ry="3.4" fill="currentColor" fill-opacity=".25"/>`),
+ thyroid:()=>SV(`<circle class="pulse" cx="50" cy="56" r="22" stroke-width="2"/><g class="breathe"><path fill="currentColor" fill-opacity=".16" d="M44 56C44 42 34 34 24 38C14 42 14 62 24 72C32 80 44 76 44 66Z"/><path fill="currentColor" fill-opacity=".16" d="M56 56C56 42 66 34 76 38C86 42 86 62 76 72C68 80 56 76 56 66Z"/><path d="M44 58h12"/></g><path stroke-width="2.4" d="M46 6v26M54 6v26M46 12h8M46 19h8M46 26h8" opacity=".6"/>`),
+ liver:()=>SV(`<g class="breathe"><path fill="currentColor" fill-opacity=".16" d="M8 46C8 30 28 20 52 22C76 24 92 36 92 50C92 64 76 70 62 66C56 64 50 72 38 74C20 76 8 62 8 46Z"/><path stroke-width="2" opacity=".6" d="M52 22C54 38 58 52 62 66"/></g><circle cx="74" cy="48" r="3" fill="currentColor"/>`),
+ pill:()=>SV(`<g class="bob"><rect x="14" y="36" width="72" height="28" rx="14" transform="rotate(-35 50 50)" fill="currentColor" fill-opacity=".14"/><path transform="rotate(-35 50 50)" d="M50 36v28"/><path transform="rotate(-35 50 50)" fill="currentColor" fill-opacity=".35" d="M50 36h22a14 14 0 0 1 0 28H50Z"/></g><circle cx="22" cy="20" r="3" fill="currentColor"/><circle cx="82" cy="82" r="2.4" fill="currentColor"/>`)
+};
+function ecg(){const beat='h50 q6 -10 12 0 h24 l5 8 l7 -42 l7 52 l5 -18 h50 q8 -12 16 0 h14';let d='M0 45';for(let i=0;i<7;i++)d+=beat;return d;}
+
+/* ---------- state ---------- */
+const TOP=Object.fromEntries(DATA.topics.map(t=>[t.id,t]));
+const PLAN=DATA.plan, CAP=DATA.cap, PARTS=DATA.parts;
+const DAYS=[...new Set(PLAN.map(p=>p.date))].sort();
+const STAT=['Not started','Learning','Learned','Revised'];
+let S={done:{},status:{},rev:{},focus:{}};
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const dkey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const pd=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fdate=s=>{const d=pd(s);return `${WD[d.getDay()]} ${d.getDate()} ${MO[d.getMonth()]}`};
+const addD=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return dkey(d)};
+const TODAY=dkey(new Date());
+const stOf=t=>S.status[t.id]||t.status;
+let SEL=DAYS.includes(TODAY)?TODAY:(TODAY<DAYS[0]?DAYS[0]:DAYS[DAYS.length-1]);
+let FILTER='all', POP=null, FIRST=true;
+const sumH=a=>a.reduce((s,p)=>s+p.hrs,0);
+const fh=n=>Number.isInteger(n)?String(n):n.toFixed(1).replace(/\.0$/,'');
+function norm(s){s=s||{};return {done:s.done||{},status:s.status||{},rev:s.rev||{},focus:s.focus||{}}}
+function hasProgress(){return Object.keys(S.done).length||Object.keys(S.status).length||Object.keys(S.rev).length||Object.keys(S.focus).length}
+
+/* ---------- persistence ---------- */
+let ref=null,timer=null,busy=false,again=false;
+const LSK='midterm-runway-v1';
+function lsLoad(){try{const v=localStorage.getItem(LSK);if(v)S=norm(JSON.parse(v))}catch(e){}}
+function lsSave(){try{localStorage.setItem(LSK,JSON.stringify(S))}catch(e){}}
+function persist(){lsSave();if(!ref)return;clearTimeout(timer);timer=setTimeout(flush,500);}
+async function flush(){timer=null;if(!ref)return;if(busy){again=true;return}busy=true;
+  try{await ref.set({state:S,at:Date.now()});$('#saveNote').textContent='Saved to your account'}catch(e){$('#saveNote').textContent='Saved on this device only'}
+  busy=false;if(again){again=false;flush()}}
+async function initStore(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    ref=db.collection('data/users/'+id).doc('progress');
+    ref.onSnapshot(snap=>{
+      if(snap.metadata.hasPendingWrites||timer||busy)return;
+      if(snap.exists){const d=snap.data();if(d&&d.state){S=norm(d.state);lsSave();renderAll();$('#saveNote').textContent='Synced';}}
+      else if(hasProgress()){flush()}
+      else{$('#saveNote').textContent='Progress saves to your account'}
+    },()=>{ref=null});
+  }catch(e){ref=null}
+}
+
+/* ---------- derived ---------- */
+function reviewsList(){
+  const out=[];
+  DATA.topics.forEach(t=>{
+    const s=stOf(t);if(s==='Not started'||s==='Material needed')return;
+    const c=CBY[t.course],last=addD(c.date,-1);
+    [1,3,7].forEach(n=>{const d=addD(t.date,n);if(d<last)out.push({id:t.id,k:`${t.id}-${n}`,date:d,label:`+${n} d`,t})});
+    out.push({id:t.id,k:`${t.id}-F`,date:last,label:'Day before exam',t});
+  });
+  return out.sort((a,b)=>a.date.localeCompare(b.date));
+}
+function dueRev(){const lim=addD(TODAY,2);return reviewsList().filter(r=>r.date<=lim&&!(S.rev[r.k]&&r.date>TODAY))}
+function courseProg(id){const ts=DATA.topics.filter(t=>t.course===id);const d=ts.filter(t=>['Learned','Revised'].includes(stOf(t))).length;return {d,n:ts.length,p:ts.length?d/ts.length:0}}
+
+/* ---------- render: hero & stats ---------- */
+const CIRC=515.2;
+function renderHero(){
+  const tot=sumH(PLAN),done=sumH(PLAN.filter(p=>S.done[p.k]));
+  const pct=Math.round(done/tot*100);
+  requestAnimationFrame(()=>{$('#heroRing').style.strokeDashoffset=CIRC*(1-done/tot)});
+  countTo($('#heroPct'),pct,'%');
+  $('#heroCap').textContent=`${fh(done)} of ${fh(tot)} planned hours finished · ${PLAN.filter(p=>S.done[p.k]).length} of ${PLAN.length} blocks`;
+  const tp=PLAN.filter(p=>p.date===TODAY);
+  $('#stToday').innerHTML=`${fh(sumH(tp.filter(p=>S.done[p.k])))} <i>/ ${fh(sumH(tp))} h</i>`;
+  $('#stBlocks').innerHTML=`${PLAN.filter(p=>S.done[p.k]).length} <i>/ ${PLAN.length}</i>`;
+  $('#stRev').textContent=dueRev().filter(r=>!S.rev[r.k]).length;
+  const m=DATA.topics.filter(t=>stOf(t)==='Material needed').length;
+  $('#stMat').innerHTML=`${m} <i>topics</i>`;
+}
+const cnt={};
+function countTo(el,to,suf){const from=cnt[el.id]??0;cnt[el.id]=to;if(from===to){el.textContent=to+suf;return}
+  const t0=performance.now(),dur=900;(function f(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(from+(to-from)*e)+suf;if(k<1)requestAnimationFrame(f)})(t0)}
+let lastCd={};
+function setN(id,v){const el=$('#'+id),s=pad(v);if(lastCd[id]!==s){el.textContent=s;el.classList.remove('tick');void el.offsetWidth;el.classList.add('tick');lastCd[id]=s}}
+function tickCd(){
+  const now=new Date();
+  const nx=COURSES.map(c=>({c,t:new Date(...[c.at[0],c.at[1]-1,c.at[2],c.at[3],c.at[4]])})).filter(x=>x.t>now).sort((a,b)=>a.t-b.t)[0];
+  if(!nx){$('#nxLbl').textContent='All midterms are done';['cdD','cdH','cdM','cdS'].forEach(i=>$('#'+i).textContent='00');$('#nxMeta').textContent='';return}
+  let ms=nx.t-now,d=Math.floor(ms/864e5);ms-=d*864e5;const h=Math.floor(ms/36e5);ms-=h*36e5;const m=Math.floor(ms/6e4);ms-=m*6e4;const s=Math.floor(ms/1e3);
+  setN('cdD',d);setN('cdH',h);setN('cdM',m);setN('cdS',s);
+  const same=COURSES.filter(c=>c.date===nx.c.date);
+  $('#nxLbl').innerHTML=`Next exam: <b>${same.map(c=>c.id).join(' and ')}</b>`;
+  $('#nxMeta').textContent=`${fdate(nx.c.date)} · ${same.map(c=>`${c.id} at ${c.time} (${c.marks} marks)`).join(' · ')}`;
+}
+
+/* ---------- render: runway ---------- */
+function renderRunway(){
+  const maxH=7;
+  $('#runway').innerHTML=DAYS.map(d=>{
+    const dt=pd(d),items=PLAN.filter(p=>p.date===d),tot=sumH(items),dn=sumH(items.filter(p=>S.done[p.k]));
+    const ex=COURSES.filter(c=>c.date===d);
+    const cls=['day'];if(d===TODAY)cls.push('today');if(d===SEL)cls.push('sel');if(ex.length)cls.push('exam');
+    const h1=FIRST?0:tot/maxH*100,h2=FIRST?0:dn/maxH*100;
+    return `<button class="${cls.join(' ')}" data-day="${d}" aria-label="${fdate(d)}, ${fh(tot)} hours planned"><span class="wd">${WD[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span><span class="mo">${MO[dt.getMonth()]}</span><span class="bar"><i class="bar-tot" data-h="${tot/maxH*100}" style="height:${h1}%"></i><i class="bar-done" data-h="${dn/maxH*100}" style="height:${h2}%"></i></span><span class="hh">${fh(tot)}h</span><span class="exs">${ex.map(c=>`<em style="--c:var(--c${c.n})">${c.id}</em>`).join('')}</span></button>`}).join('');
+  if(FIRST)requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#runway .bar i').forEach(i=>i.style.height=i.dataset.h+'%')));
+  const s=$('#runway .sel');if(s){const r=$('#runway');const left=s.offsetLeft-r.clientWidth/2+s.offsetWidth/2;r.scrollTo({left:Math.max(0,left),behavior:FIRST?'auto':'smooth'})}
+}
+
+/* ---------- render: plan ---------- */
+function renderPlan(){
+  const items=PLAN.filter(p=>p.date===SEL),tot=sumH(items),dn=sumH(items.filter(p=>S.done[p.k]));
+  $('#pDate').innerHTML=`${fdate(SEL)}${SEL===TODAY?' <span class="tag" style="--c:var(--accent)">Today</span>':''}`;
+  const nx=COURSES.filter(c=>c.date>=SEL).sort((a,b)=>a.date.localeCompare(b.date))[0];
+  const dd=nx?Math.round((pd(nx.date)-pd(SEL))/864e5):0;
+  $('#pSub').textContent=`${fh(tot)} h planned · ${fh(dn)} h done · `+(nx?(dd===0?`exam day`:`${dd} day${dd>1?'s':''} to ${COURSES.filter(c=>c.date===nx.date).map(c=>c.id).join(' and ')}`):'');
+  $('#pBar').style.width=(tot?dn/tot*100:0)+'%';
+  const ex=COURSES.filter(c=>c.date===SEL);
+  $('#pExam').innerHTML=ex.length?`<div class="dayexam"><b>Exam day.</b> ${ex.map(c=>`${c.id} at ${c.time}`).join(' · ')}. Study blocks today fit around the exam; no new material right before it.</div>`:'';
+  $('#blocks').innerHTML=items.map(p=>{
+    const c=CBY[p.course],done=!!S.done[p.k],missed=p.date<TODAY&&!done;
+    const mat=p.kind==='placeholder';
+    return `<li class="blk${done?' done':''}${missed?' missed':''}" style="--c:var(--c${c.n})">
+      <button class="chk${POP===p.k?' pop':''}" role="checkbox" aria-checked="${done}" aria-label="Mark block done" data-k="${p.k}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+      <div><div class="tags"><span class="tag">${p.course}</span><span class="hrs">${fh(p.hrs)} h</span><span class="pri ${p.pri}">${p.pri}</span>${mat?'<span class="miss">Material needed</span>':''}${missed?'<span class="flag">Missed: move it to a spare slot</span>':''}</div>
+      <h4>${p.topic}</h4><p class="task">${p.task}</p><p class="tech"><b>Method</b>${p.tech}</p></div>
+      <div class="ill">${ICON[c.icon]()}</div></li>`}).join('');
+  POP=null;
+  const i=DAYS.indexOf(SEL);$('#prevD').disabled=i<=0;$('#nextD').disabled=i>=DAYS.length-1;
+}
+
+/* ---------- render: courses ---------- */
+function buildCourses(){
+  $('#cgrid').innerHTML=COURSES.map(c=>{
+    const parts=PARTS[c.id]||[],tm=parts.reduce((s,p)=>s+p[1],0);
+    return `<button class="course" data-c="${c.id}" style="--c:var(--c${c.n})">
+      <div class="ill">${ICON[c.icon]()}</div>
+      <span class="code">${c.id}</span><h3>${c.name}</h3><p class="sub">${c.sub}</p>
+      <div class="row"><div class="when"><b class="mono" data-left></b><span>${fdate(c.date)} · ${c.time}</span></div>
+      <div class="cr"><svg viewBox="0 0 64 64"><circle class="t" cx="32" cy="32" r="26"/><circle class="f" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="163.4"/></svg><span data-pct>0%</span></div></div>
+      <div class="marks" aria-hidden="true">${parts.map(p=>`<i style="flex:${p[1]}"></i>`).join('')}</div>
+      <div class="mlegend">${parts.map(p=>`<span>${p[0]} ${p[1]}</span>`).join('')}<span><b>${tm} marks</b></span></div>
+      <span class="need" data-need hidden></span></button>`}).join('');
+}
+function updateCourses(){
+  document.querySelectorAll('.course').forEach(el=>{
+    const c=CBY[el.dataset.c],pr=courseProg(c.id);
+    const left=Math.ceil((pd(c.date)-pd(TODAY))/864e5);
+    el.querySelector('[data-left]').textContent=left>0?`${left} days`:(left===0?'Today':'Done');
+    el.querySelector('.f').style.strokeDashoffset=163.4*(1-pr.p);
+    el.querySelector('[data-pct]').textContent=Math.round(pr.p*100)+'%';
+    const miss=DATA.topics.filter(t=>t.course===c.id&&stOf(t)==='Material needed').length;
+    const nd=el.querySelector('[data-need]');nd.hidden=!miss;nd.textContent=`${miss} topic${miss>1?'s':''} need slides`;
+  });
+}
+
+/* ---------- render: topics ---------- */
+function renderTopics(){
+  $('#tchips').innerHTML=`<button class="chip${FILTER==='all'?' on':''}" data-f="all">All ${DATA.topics.length}</button>`+COURSES.map(c=>`<button class="chip${FILTER===c.id?' on':''}" data-f="${c.id}" style="--c:var(--c${c.n})"><i></i>${c.id}</button>`).join('');
+  const ts=DATA.topics.filter(t=>FILTER==='all'||t.course===FILTER);
+  $('#tlist').innerHTML=ts.map(t=>{
+    const c=CBY[t.course],s=stOf(t);
+    return `<div class="trow" style="--c:var(--c${c.n})"><span class="tid">${t.id}</span><h4>${t.topic}</h4>
+      <span class="when">${fdate(t.date)}</span>
+      <button class="st ${s==='Material needed'?'need':s}" data-t="${t.id}" aria-label="Status of ${t.id}: ${s}">${s==='Material needed'?'Needs slides':s}</button>
+      <span class="meta"><span class="dot ${t.diff}"></span>${t.diff} · ${t.course} · ${t.dept} · ${t.file} · ${t.size}</span></div>`}).join('');
+}
+
+/* ---------- render: reviews ---------- */
+function renderReviews(){
+  const list=dueRev();
+  $('#rv').innerHTML=list.length?list.map(r=>{
+    const c=CBY[r.t.course],done=!!S.rev[r.k];
+    const when=r.date<TODAY?'Overdue':r.date===TODAY?'Today':r.date===addD(TODAY,1)?'Tomorrow':fdate(r.date);
+    return `<div class="rvrow${done?' done':''}" style="--c:var(--c${c.n})"><button class="chk" role="checkbox" aria-checked="${done}" aria-label="Mark review done" data-r="${r.k}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button><div><h4>${r.t.topic}</h4><small>${r.t.course} · ${r.label}</small></div><span class="${when==='Overdue'?'flag':'tag'}">${when}</span></div>`}).join('')
+  :`<div class="empty">No reviews yet. When you mark a topic Learned, its +1, +3 and +7 day reviews appear here.</div>`;
+}
+
+/* ---------- missing + methods ---------- */
+function renderNeed(){
+  const ts=DATA.topics.filter(t=>stOf(t)==='Material needed');
+  $('#needList').innerHTML=ts.length?ts.map(t=>{const c=CBY[t.course];return `<li><b>${t.topic.replace(' - MATERIAL NEEDED','')}</b><em>${t.course} · ${fdate(c.date)}</em></li>`}).join(''):'<li>Nothing missing. All topics have material.</li>';
+}
+function renderMeth(){$('#meth').innerHTML=METHODS.map(m=>`<div class="meth" style="--c:var(--c${m.n})"><div class="ill">${ICON[m.icon]()}</div><h4>${m.h}</h4><p>${m.p}</p></div>`).join('')}
+
+function renderAll(){renderHero();renderRunway();renderPlan();updateCourses();renderTopics();renderReviews();renderNeed();FIRST=false}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.day){SEL=t.dataset.day;renderRunway();renderPlan();return}
+  if(t.id==='prevD'||t.id==='nextD'){const i=DAYS.indexOf(SEL)+(t.id==='nextD'?1:-1);if(DAYS[i]){SEL=DAYS[i];renderRunway();renderPlan()}return}
+  if(t.dataset.k){const k=t.dataset.k,b=PLAN.find(p=>p.k===k);
+    if(S.done[k])delete S.done[k];else{S.done[k]=1;POP=k;if(b.kind==='learn')b.ids.forEach(id=>{if(stOf(TOP[id])==='Not started')S.status[id]='Learned'})}
+    persist();renderAll();return}
+  if(t.dataset.r){const k=t.dataset.r;if(S.rev[k])delete S.rev[k];else S.rev[k]=1;
+    const id=k.split('-')[0];if(S.rev[k]&&stOf(TOP[id])==='Learned'&&k.endsWith('F'))S.status[id]='Revised';
+    persist();renderAll();return}
+  if(t.dataset.t){const tp=TOP[t.dataset.t],s=stOf(tp);if(s==='Material needed')return;
+    S.status[tp.id]=STAT[(STAT.indexOf(s)+1)%STAT.length];if(S.status[tp.id]===tp.status)delete S.status[tp.id];persist();renderAll();return}
+  if(t.dataset.f){FILTER=t.dataset.f;renderTopics();return}
+  if(t.dataset.c){FILTER=t.dataset.c;renderTopics();$('#topicSec').scrollIntoView({behavior:'smooth',block:'start'});return}
+});
+
+/* ---------- focus timer ---------- */
+const TM={mins:25,left:1500,run:false,iv:null,focusMode:true};
+function tmDraw(){const m=Math.floor(TM.left/60),s=TM.left%60;$('#tmTxt').textContent=`${pad(m)}:${pad(s)}`;$('#tmRing').style.strokeDashoffset=CIRC*(1-TM.left/(TM.mins*60));
+  $('#fabTxt').textContent=TM.run?`${pad(m)}:${pad(s)}`:'Focus';$('#fab').classList.toggle('run',TM.run);
+  const f=S.focus[TODAY]||0;$('#tmLog').textContent=`Focus today: ${f} min`}
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=660;g.gain.setValueAtTime(.12,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.9);o.start();o.stop(a.currentTime+.9)}catch(e){}}
+function tmStop(){TM.run=false;clearInterval(TM.iv);$('#tmGo').textContent='Start'}
+$('#fab').addEventListener('click',()=>{const p=$('#panel');p.hidden=!p.hidden;$('#fab').setAttribute('aria-expanded',String(!p.hidden))});
+$('#modes').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tmStop();TM.mins=+b.dataset.m;TM.left=TM.mins*60;TM.focusMode=TM.mins>5;[...$('#modes').children].forEach(x=>x.classList.toggle('on',x===b));tmDraw()});
+$('#tmReset').addEventListener('click',()=>{tmStop();TM.left=TM.mins*60;tmDraw()});
+$('#tmGo').addEventListener('click',()=>{
+  if(TM.run){tmStop();tmDraw();return}
+  TM.run=true;$('#tmGo').textContent='Pause';
+  TM.iv=setInterval(()=>{TM.left--;if(TM.left<=0){TM.left=0;tmStop();beep();if(TM.focusMode){S.focus[TODAY]=(S.focus[TODAY]||0)+TM.mins;persist()}TM.left=TM.mins*60}tmDraw()},1000);tmDraw()});
+
+/* ---------- boot ---------- */
+$('#ecgBase').setAttribute('d',ecg());$('#ecgLive').setAttribute('d',ecg());
+lsLoad();buildCourses();renderMeth();renderAll();tickCd();tmDraw();
+setInterval(tickCd,1000);
+initStore();
+</script>
+
+</body></html>
